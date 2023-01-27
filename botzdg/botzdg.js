@@ -12,7 +12,7 @@ const server = http.createServer(app);
 const io = socketIO(server);
 
 // PORTA ONDE O SERVIÇO SERÁ INICIADO
-const port = 8000;
+const port = 8089;
 const idClient = 'bot-zdg';
 
 // SERVIÇO EXPRESS
