@@ -1,0 +1,53 @@
+n8n - Docker-Compose - FUNCIONA
+https://docs.n8n.io/hosting/installation/server-setups/docker-compose/#7-create-data-folder
+
+
+docker run -d -it --rm --name n8n -p 5678:5678 -v ~/.n8n:/home/node/.n8n n8nio/n8n
+
+sudo certbot --nginx -d n8n.smw-zap.net.br
+
+sudo ufw allow 5678/tcp
+sudo ufw list
+
+sudo apt update
+sudo apt upgrade
+curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+sudo apt-get install -y nodejs
+sudo apt install -y build-essential
+sudo npm install -g node-gyp
+sudo npm install n8n -g --unsafe-perm
+n8n start
+sudo npm install -g pm2
+pm2 start n8n
+sudo apt install nginx
+sudo rm /etc/nginx/sites-enabled/default
+sudo nano /etc/nginx/sites-available/n8n
+
+🔴 proxy reverso abaixo, diferente do vídeo devido a update do sistema
+
+server {
+  server_name n8n.smw-zap.net.br;
+  location / {
+    proxy_pass http://localhost:5678;
+    proxy_set_header Connection '';
+    proxy_http_version 1.1;
+    chunked_transfer_encoding off;
+    proxy_buffering off;
+    proxy_cache off;
+  }
+}
+
+🔴 #### se estiver fora do root
+​sudo ln -s /etc/nginx/sites-available/n8n /etc/nginx/sites-enabled
+
+🔴 #### se estiver no root
+ln -s /etc/nginx/sites-available/n8n /etc/nginx/sites-enabled
+
+sudo nginx -t
+sudo service nginx restart
+sudo apt-get install snapd
+sudo snap install notes
+sudo snap install --classic certbot
+sudo certbot --nginx
+
+n8n start --tunnel

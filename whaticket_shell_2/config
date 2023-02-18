@@ -1,0 +1,7 @@
+deploy_password=ZdGXaUHeZ3EKzU=
+mysql_root_password=ZdG/hjmYbzuSd9mHPXnSxrgZ8CoTxepahoPy4BjW+5MQtJg=
+db_pass=ZdG387FhYsm0olSm097541HMSdS=
+jwt_secret=3123123213123
+jwt_refresh_secret=75756756756
+deploy_email=deploy@whaticket.com
+db_user=root

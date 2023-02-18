@@ -18,7 +18,7 @@
 
 ## CRIAR SUBDOMINIO E APONTAR PARA O IP DA SUA VPS
 
-BOTZDG: botzdg.smw-zap.net.br
+BOTZDG: botw.smw-zap.net.br
 
 ## CHECAR PROPAGAÇÃO DO DOMÍNIO
 
@@ -26,8 +26,8 @@ https://dnschecker.org/
 
 ## COPIAR A PASTA PARA ROOT E RODAR OS COMANDOS ABAIXO ##
 
-sudo chmod +x ./botzdg_shell/botzdg
-cd ./botzdg_shell
+sudo chmod +x ./botzdg_shell/botzdg.sh
+cd ./botzdg.sh
 sudo ./botzdg
 
 ================================================

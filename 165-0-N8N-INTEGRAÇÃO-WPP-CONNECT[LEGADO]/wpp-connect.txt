@@ -1,0 +1,36 @@
+URL aula: https://zdgv2.club.hotmart.com/lesson/x7W9vVKG42/165.0-integracao-wpp-connect-legado
+
+WPP CONNECT + DISPARO DE BOTÕES
+
+1- INSTALAR O WPP CONNECT SERVER
+2- CRIAR FRONTEND (XAMP OU LAMP)
+3- INJETAR CÓDIGO N8N
+4- CRIAR FLOW NO N8N
+
+pasta: dist/util/createSessionUtil.js
+
+Adicionar Biblioteca "request"
+const request = require('request');
+
+No metodo: async lisnMessages
+depois do if (message.type...)
+.
+.
+
+
+      var options = {
+        'method': 'POST',
+        'url': 'https://jqaur1m11ongj279cq9g0hes.hooks.n8n.cloud/webhook-test/69731a13-ddc0-4ae5-8fb5-9fe8ccd48de6',
+        'headers': {
+          'Content-Type': 'application/json'
+        },
+        json: message
+      };
+      request(options, function (error, response) {
+        if (error) {
+          throw new Error(error);
+        }
+        else {
+          console.log(response.body);
+        }
+      });

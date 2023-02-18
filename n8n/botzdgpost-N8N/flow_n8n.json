@@ -1,0 +1,1848 @@
+{
+  "name": "Flow",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        -980,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "b1a5d72d-4547-43ec-8317-6589ed1bdf8d",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -780,
+        360
+      ],
+      "webhookId": "b1a5d72d-4547-43ec-8317-6589ed1bdf8d"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Google Sheets4\"].json[\"status1\"]}}",
+              "value2": "off"
+            },
+            {
+              "value1": "={{$node[\"Google Sheets4\"].json[\"status2\"]}}",
+              "value2": "off"
+            },
+            {
+              "value1": "={{$node[\"Google Sheets4\"].json[\"status3\"]}}",
+              "value2": "off"
+            }
+          ]
+        }
+      },
+      "name": "IF",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        340,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://localhost:8000/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\"number\":\"{{$node[\"Webhook\"].json[\"body\"][\"from\"]}}\",\"message\":\"*Olá {{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"notifyName\"]}}, tudo bem?*\\n\\n_Escolha uma das opções abaixo:_\\n\\n1-Financeiro\\n2-Comercial\\n3-Jurídico\\n0-Voltar ao início\"}"
+      },
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        580,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "lookup",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "lookupColumn": "number",
+        "lookupValue": "={{$node[\"Webhook\"].json[\"body\"][\"from\"]}}",
+        "options": {}
+      },
+      "name": "Google Sheets2",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        -620,
+        360
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            },
+            {
+              "name": "status1",
+              "value": "off"
+            },
+            {
+              "name": "status2",
+              "value": "off"
+            },
+            {
+              "name": "status3",
+              "value": "off"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets3",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        280
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Google Sheets2\"].json[\"number\"]}}",
+              "operation": "isEmpty"
+            }
+          ]
+        }
+      },
+      "name": "IF1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "key": "number",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        440
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "lookup",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "lookupColumn": "number",
+        "lookupValue": "={{$node[\"Webhook\"].json[\"body\"][\"from\"]}}",
+        "options": {}
+      },
+      "name": "Google Sheets4",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        180,
+        360
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "key": "number",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        980,
+        240
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            },
+            {
+              "name": "status1",
+              "value": "on"
+            },
+            {
+              "name": "status2",
+              "value": "off"
+            },
+            {
+              "name": "status3",
+              "value": "off"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set2",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        780,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            },
+            {
+              "name": "status1",
+              "value": "off"
+            },
+            {
+              "name": "status2",
+              "value": "off"
+            },
+            {
+              "name": "status3",
+              "value": "off"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set3",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1720,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "key": "number",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets5",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        -100
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://localhost:8000/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\"number\":\"{{$node[\"Webhook\"].json[\"body\"][\"from\"]}}\",\"message\":\"Seu atendimento foi zerado. Para iniciarmos um novo atendimento, por favor, envie uma mensagem novamente.\"}"
+      },
+      "name": "HTTP Request1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Google Sheets4\"].json[\"status1\"]}}",
+              "value2": "on"
+            },
+            {
+              "value1": "={{$node[\"Google Sheets4\"].json[\"status2\"]}}",
+              "value2": "off"
+            },
+            {
+              "value1": "={{$node[\"Google Sheets4\"].json[\"status3\"]}}",
+              "value2": "off"
+            }
+          ]
+        }
+      },
+      "name": "IF2",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        580,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Google Sheets4\"].json[\"status1\"]}}",
+              "value2": "on"
+            },
+            {
+              "value1": "={{$node[\"Google Sheets4\"].json[\"status2\"]}}",
+              "value2": "on"
+            },
+            {
+              "value1": "={{$node[\"Google Sheets4\"].json[\"status3\"]}}",
+              "value2": "off"
+            }
+          ]
+        }
+      },
+      "name": "IF3",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        800,
+        940
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{$node[\"Webhook\"].json[\"body\"][\"body\"]}}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "0"
+            },
+            {
+              "value2": "1",
+              "output": 1
+            },
+            {
+              "value2": "2",
+              "output": 2
+            },
+            {
+              "value2": "3",
+              "output": 3
+            }
+          ]
+        }
+      },
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://localhost:8000/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\"number\":\"{{$node[\"Webhook\"].json[\"body\"][\"from\"]}}\",\"message\":\"*Olá {{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"notifyName\"]}}, obrigado por sua resposta.*\\n\\n_Seja bem vindo ao departamento financeiro. Escolha uma opção abaixo:_\\n\\n1-Contas a pagar\\n2-Contas a receber\\n0-Voltar ao início\"}"
+      },
+      "name": "HTTP Request4",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://localhost:8000/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\"number\":\"{{$node[\"Webhook\"].json[\"body\"][\"from\"]}}\",\"message\":\"*Olá {{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"notifyName\"]}}, obrigado por sua resposta.*\\n\\n_Seja bem vindo ao departamento comercial. Escolha uma opção abaixo:_\\n\\n3-Consultar meu pedido.\\n0-Voltar ao início\"}"
+      },
+      "name": "HTTP Request5",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://localhost:8000/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\"number\":\"{{$node[\"Webhook\"].json[\"body\"][\"from\"]}}\",\"message\":\"*Olá {{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"notifyName\"]}}, obrigado por sua resposta.*\\n\\n_Seja bem vindo ao departamento jurídico. Seu atendimento já foi enviado para um humano.:_\\n\\n0-Voltar ao início\"}"
+      },
+      "name": "HTTP Request6",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            },
+            {
+              "name": "status1",
+              "value": "on"
+            },
+            {
+              "name": "status2",
+              "value": "on"
+            },
+            {
+              "name": "status3",
+              "value": "off"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set6",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1720,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "key": "number",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets8",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        80
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            },
+            {
+              "name": "status1",
+              "value": "on"
+            },
+            {
+              "name": "status2",
+              "value": "on"
+            },
+            {
+              "name": "status3",
+              "value": "off"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set7",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1720,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "key": "number",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets9",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        240
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            },
+            {
+              "name": "status1",
+              "value": "on"
+            },
+            {
+              "name": "status2",
+              "value": "on"
+            },
+            {
+              "name": "status3",
+              "value": "on"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set8",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1720,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "key": "number",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets10",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        420
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{$node[\"Webhook\"].json[\"body\"][\"body\"]}}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "0"
+            },
+            {
+              "value2": "1",
+              "output": 1
+            },
+            {
+              "value2": "2",
+              "output": 2
+            },
+            {
+              "value2": "3",
+              "output": 3
+            }
+          ]
+        }
+      },
+      "name": "Switch1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        980
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            },
+            {
+              "name": "status1",
+              "value": "off"
+            },
+            {
+              "name": "status2",
+              "value": "off"
+            },
+            {
+              "name": "status3",
+              "value": "off"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set9",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1960,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "key": "number",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets11",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        720
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://localhost:8000/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\"number\":\"{{$node[\"Webhook\"].json[\"body\"][\"from\"]}}\",\"message\":\"Seu atendimento foi zerado. Para iniciarmos um novo atendimento, por favor, envie uma mensagem novamente.\"}"
+      },
+      "name": "HTTP Request7",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://localhost:8000/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\"number\":\"{{$node[\"Webhook\"].json[\"body\"][\"from\"]}}\",\"message\":\"*Olá {{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"notifyName\"]}}, obrigado por sua resposta.*\\n\\n_Seja bem vindo ao departamento de contas a pagar. Seu atendimento já foi enviado para um humano.:_\\n\\n0-Voltar ao início\"}"
+      },
+      "name": "HTTP Request8",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://localhost:8000/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\"number\":\"{{$node[\"Webhook\"].json[\"body\"][\"from\"]}}\",\"message\":\"*Olá {{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"notifyName\"]}}, obrigado por sua resposta.*\\n\\n_Seja bem vindo ao departamento de contas a receber. Seu atendimento já foi enviado para um humano.:_\\n\\n0-Voltar ao início\"}"
+      },
+      "name": "HTTP Request9",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        1060
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://localhost:8000/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\"number\":\"{{$node[\"Webhook\"].json[\"body\"][\"from\"]}}\",\"message\":\"*Olá {{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"notifyName\"]}}, obrigado por sua resposta.*\\n\\n_Seja bem vindo ao departamento de acompanhamento de pedidos. Seu atendimento já foi enviado para um humano.:_\\n\\n0-Voltar ao início\"}"
+      },
+      "name": "HTTP Request10",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        1240
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            },
+            {
+              "name": "status1",
+              "value": "on"
+            },
+            {
+              "name": "status2",
+              "value": "on"
+            },
+            {
+              "name": "status3",
+              "value": "on"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set10",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1960,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "key": "number",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets12",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        900
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            },
+            {
+              "name": "status1",
+              "value": "on"
+            },
+            {
+              "name": "status2",
+              "value": "on"
+            },
+            {
+              "name": "status3",
+              "value": "on"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set11",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1960,
+        1060
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "key": "number",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets13",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        1060
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            },
+            {
+              "name": "status1",
+              "value": "on"
+            },
+            {
+              "name": "status2",
+              "value": "on"
+            },
+            {
+              "name": "status3",
+              "value": "on"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set12",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        1960,
+        1240
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "key": "number",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets14",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        1240
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{$node[\"Webhook\"].json[\"body\"][\"body\"]}}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "0"
+            },
+            {
+              "operation": "notContains",
+              "value2": "0",
+              "output": 1
+            },
+            {
+              "operation": "notContains",
+              "value2": "0",
+              "output": 2
+            },
+            {
+              "operation": "notContains",
+              "value2": "0",
+              "output": 3
+            }
+          ]
+        }
+      },
+      "name": "Switch2",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        1420,
+        1880
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            },
+            {
+              "name": "status1",
+              "value": "off"
+            },
+            {
+              "name": "status2",
+              "value": "off"
+            },
+            {
+              "name": "status3",
+              "value": "off"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set13",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        2220,
+        1620
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "key": "number",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets15",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        2420,
+        1620
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://localhost:8000/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\"number\":\"{{$node[\"Webhook\"].json[\"body\"][\"from\"]}}\",\"message\":\"Seu atendimento foi zerado. Para iniciarmos um novo atendimento, por favor, envie uma mensagem novamente.\"}"
+      },
+      "name": "HTTP Request11",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        2020,
+        1620
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://localhost:8000/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\"number\":\"{{$node[\"Webhook\"].json[\"body\"][\"from\"]}}\",\"message\":\"*Olá {{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"notifyName\"]}}, obrigado por sua resposta.*\\n\\n_Em breve um humano irá atendê-lo.\"}"
+      },
+      "name": "HTTP Request12",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        2020,
+        1800
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://localhost:8000/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\"number\":\"{{$node[\"Webhook\"].json[\"body\"][\"from\"]}}\",\"message\":\"*Olá {{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"notifyName\"]}}, obrigado por sua resposta.*\\n\\n_Em breve um humano irá atendê-lo.\"}"
+      },
+      "name": "HTTP Request13",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        2020,
+        1960
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://localhost:8000/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\"number\":\"{{$node[\"Webhook\"].json[\"body\"][\"from\"]}}\",\"message\":\"*Olá {{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"notifyName\"]}}, obrigado por sua resposta.*\\n\\n_Em breve um humano irá atendê-lo.\"}"
+      },
+      "name": "HTTP Request14",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        2020,
+        2140
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            },
+            {
+              "name": "status1",
+              "value": "on"
+            },
+            {
+              "name": "status2",
+              "value": "on"
+            },
+            {
+              "name": "status3",
+              "value": "on"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set14",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        2220,
+        1800
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "key": "number",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets16",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        2420,
+        1800
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            },
+            {
+              "name": "status1",
+              "value": "on"
+            },
+            {
+              "name": "status2",
+              "value": "on"
+            },
+            {
+              "name": "status3",
+              "value": "on"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set15",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        2220,
+        1960
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "key": "number",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets17",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        2420,
+        1960
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "number",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"_data\"][\"from\"]}}"
+            },
+            {
+              "name": "status1",
+              "value": "on"
+            },
+            {
+              "name": "status2",
+              "value": "on"
+            },
+            {
+              "name": "status3",
+              "value": "on"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set16",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        2220,
+        2140
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "update",
+        "sheetId": "1-qbPTqVAx2x2CNdw85kTJDDGVXRzxomwEUZjQVAS_YM",
+        "key": "number",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Google Sheets18",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        2420,
+        2140
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets2": {
+      "main": [
+        [
+          {
+            "node": "IF1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set1": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF1": {
+      "main": [
+        [
+          {
+            "node": "Set1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets3": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Set2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets4": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set2": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set3": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF2": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF3": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Set3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set6": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set7": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set8": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request6": {
+      "main": [
+        [
+          {
+            "node": "Set8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request5": {
+      "main": [
+        [
+          {
+            "node": "Set7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "Set6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set9": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request7": {
+      "main": [
+        [
+          {
+            "node": "Set9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request8": {
+      "main": [
+        [
+          {
+            "node": "Set10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request9": {
+      "main": [
+        [
+          {
+            "node": "Set11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request10": {
+      "main": [
+        [
+          {
+            "node": "Set12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set10": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set11": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set12": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request9",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request11",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request12",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request13",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set13": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request11": {
+      "main": [
+        [
+          {
+            "node": "Set13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request12": {
+      "main": [
+        [
+          {
+            "node": "Set14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request13": {
+      "main": [
+        [
+          {
+            "node": "Set15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request14": {
+      "main": [
+        [
+          {
+            "node": "Set16",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set14": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets16",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set15": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets17",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set16": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets18",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "id": 3
+}

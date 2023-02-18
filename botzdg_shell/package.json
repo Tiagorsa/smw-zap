@@ -18,6 +18,7 @@
     "@google-cloud/dialogflow": "^4.6.0",
     "actions-on-google": "^2.4.1",
     "axios": "^0.21.1",
+    "dateformat": "^5.0.3",
     "dialogflow-fulfillment": "^0.6.1",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.0",
@@ -27,7 +28,9 @@
     "mysql2": "^2.3.3",
     "pb-util": "^1.0.3",
     "qrcode": "^1.4.4",
+    "request": "^2.88.2",
     "socket.io": "2.3.0",
+    "sqlite3": "^5.1.4",
     "util": "^0.12.4",
     "whatsapp-web.js": "^1.19.2"
   },

@@ -85,7 +85,7 @@ sudo su - root << EOF
 
 cat > /etc/nginx/sites-available/botzdg << 'END'
 server {
-  server_name $backend_hostname;
+  server_name $backend_hostname 
 
   location / {
     proxy_pass http://127.0.0.1:8000;
@@ -100,9 +100,11 @@ server {
   }
 }
 END
-
 ln -s /etc/nginx/sites-available/botzdg /etc/nginx/sites-enabled
 EOF
+# rm -v /etc/nginx/sites-enabled/botzdg
+# cat /etc/nginx/sites-enabled/botzdg
+# botw.smw-zap.net.br;
 
   sleep 2
 }

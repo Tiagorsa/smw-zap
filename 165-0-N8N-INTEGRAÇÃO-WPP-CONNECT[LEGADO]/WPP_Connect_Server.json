@@ -1,0 +1,175 @@
+{
+  "name": "WPP Connect Server",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        80,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "69731a13-ddc0-4ae5-8fb5-9fe8ccd48de6",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        280,
+        300
+      ],
+      "webhookId": "69731a13-ddc0-4ae5-8fb5-9fe8ccd48de6"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Webhook\"].json[\"body\"][\"content\"]}}",
+              "value2": "Talvez"
+            }
+          ]
+        }
+      },
+      "name": "IF",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "requestMethod": "POST",
+        "url": "http://localhost:21465/api/sessao1/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\n  \"phone\": \"{{$node[\"FunctionItem\"].json}}\",\n  \"message\": \"Hello World\",\n  \"isGroup\": false\n}"
+      },
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        960,
+        120
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "17",
+          "name": "Header Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const user = item.body.from.replace('@c.us','');\nreturn user;"
+      },
+      "name": "FunctionItem",
+      "type": "n8n-nodes-base.functionItem",
+      "typeVersion": 1,
+      "position": [
+        760,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const user = item.body.from.replace('@c.us','');\nreturn user;"
+      },
+      "name": "FunctionItem1",
+      "type": "n8n-nodes-base.functionItem",
+      "typeVersion": 1,
+      "position": [
+        740,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "requestMethod": "POST",
+        "url": "http://localhost:21465/api/sessao1/send-message",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\n  \"phone\": \"{{$node[\"FunctionItem\"].json}}\",\n  \"message\": \"Hello World\",\n  \"isGroup\": false\n}"
+      },
+      "name": "HTTP Request1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        980,
+        460
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "17",
+          "name": "Header Auth account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "FunctionItem",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "FunctionItem1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FunctionItem": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FunctionItem1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": 21
+}
