@@ -1,0 +1,35 @@
+{
+    "counter": 1,
+    "data": [
+        {
+            "saldo_almox": {},
+            "e_promo_win": 0,
+            "codsec": 3191,
+            "selecao": 0,
+            "secao": "MARTELO UNHA -TRAMONTINA-",
+            "com_saldo": {},
+            "unid": "UN",
+            "com_saldo_filiais": {},
+            "numoriginal": "220",
+            "saldo_geral": "0",
+            "dadostecnicos": "Martelo de Unha Basic\n\nDescri\u00e7\u00e3o:\n* Cabe\u00e7a forjada em a\u00e7o carbono SAE 1045\n* Acabamento jateado e envernizado\n* Cabo de madeira fixado com epoxi\nRefer\u00eancia\n* 40370\/023 - 23 mm\n",
+            "data_captura": "18-02-2023 15:32",
+            "descricao": "MARTELO UNHA 23MM 40370023 TRAMONTINA",
+            "dirfotoprod": "\\\\192.168.10.88\\winthor\\IMG\\IMG Prod\\220.JPG",
+            "saldo_filial": "0",
+            "pesobruto": 0.52,
+            "codauxiliar": 7891114016178,
+            "codprod": 13,
+            "codepto": 1,
+            "saldo_filial_almox": 0.0,
+            "promocao": 0,
+            "preco_orig_win": 32,
+            "marca": "TRAMONTINA",
+            "idx": "0001",
+            "fator": 1,
+            "filial_saldo": 1,
+            "codmarca": 5,
+            "codfab": "40370023"
+        }
+    ]
+}

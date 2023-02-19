@@ -1,0 +1,39 @@
+{
+    "counter": 1,
+    "data": [
+        {
+            "saldo_almox": {},
+            "e_promo_win": 0,
+            "codsec": 2321,
+            "selecao": 0,
+            "secao": "PORCELANATO",
+            "com_saldo": {
+                "BR": 48.9
+            },
+            "unid": "M2",
+            "com_saldo_filiais": {
+                "BR": 48.9
+            },
+            "numoriginal": "139045",
+            "saldo_geral": "48.9",
+            "dadostecnicos": "PORCELANATO MUNARI CIMENTO AC 90X90 ELIANE PESO:40,51 CX:1,63",
+            "data_captura": "18-02-2023 15:43",
+            "descricao": "PORCELANATO MUNARI CIMENTO AC 90X90 ELIANE PESO:40,51 CX:1,63",
+            "dirfotoprod": "\\\\192.168.10.88\\winthor\\IMG\\IMG Prod\\139045.JPG",
+            "saldo_filial": "0",
+            "pesobruto": 41.5,
+            "codauxiliar": 7890942227985,
+            "codprod": 138736,
+            "codepto": 9,
+            "saldo_filial_almox": 0.0,
+            "promocao": 0,
+            "preco_orig_win": 149.9,
+            "marca": "ELIANE",
+            "idx": "0001",
+            "fator": 1.63,
+            "filial_saldo": 1,
+            "codmarca": 1446,
+            "codfab": "8045557"
+        }
+    ]
+}
