@@ -1,11 +1,11 @@
 {"opl": {
     "allowed":{
-        "559198265091":{"username":"Doris"       ,"perfil":1,"size": 27, "ponto": "N","codfil":1 ,"coddepto":0}
-        ,"559185483773":{"username":"Tiago"      ,"perfil":1,"size": 30, "ponto": "N","codfil":1 ,"coddepto":0}
-        ,"559184245276":{"username":"Andrea"     ,"perfil":1,"size": 27, "ponto": "N","codfil":1 ,"coddepto":0}
-        ,"559189005005":{"username":"Luan-BR"    ,"perfil":1,"size": 27, "ponto": "N","codfil":75,"coddepto":0}
-        ,"559187477048":{"username":"Joelme-BR"  ,"perfil":1,"size": 27, "ponto": "N","codfil":75,"coddepto":0}
-        ,"559182438462":{"username":"Alberto-BR" ,"perfil":1,"size": 27, "ponto": "N","codfil":1, "coddepto":0}
+         "559198265091":{"username":"Doris"      ,"perfil":1,"size": 27, "dialogflow": "N","ponto": "N","codfil":1 ,"coddepto":0}
+        ,"559185483773":{"username":"Tiago"      ,"perfil":1,"size": 30, "dialogflow": "S","ponto": "N","codfil":1 ,"coddepto":0}
+        ,"559184245276":{"username":"Andrea"     ,"perfil":1,"size": 27, "dialogflow": "N","ponto": "N","codfil":1 ,"coddepto":0}
+        ,"559189005005":{"username":"Luan-BR"    ,"perfil":1,"size": 27, "dialogflow": "S","ponto": "N","codfil":75,"coddepto":0}
+        ,"559187477048":{"username":"Joelme-BR"  ,"perfil":1,"size": 27, "dialogflow": "N","ponto": "N","codfil":75,"coddepto":0}
+        ,"559182438462":{"username":"Alberto-BR" ,"perfil":1,"size": 27, "dialogflow": "N","ponto": "N","codfil":1, "coddepto":0}
         }
     }
 }

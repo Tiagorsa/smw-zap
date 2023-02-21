@@ -21,6 +21,12 @@ const idClient = 'bot-zdg';
 
 // URL ref. aulas:
 // https://zdgv2.club.hotmart.com/lesson/RO9dG1037P/intro-22.0-consumindo-o-dialogflow
+// DialogFlow Libs
+// $npm install @google-cloud/dialogflow
+// $npm install actions-on-google
+// $npm install body-parser
+// $npm install dialogflow-fulfillment
+
 
 // CREDENCIAIS DIALOGFLOW (https://console.cloud.google.com/)
 const sessionClient = new dialogflow.SessionsClient({keyFilename: 'zdg-9un9-0aba54d6e44c.json'});

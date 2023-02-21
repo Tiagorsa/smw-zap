@@ -25,15 +25,15 @@ const axios = require('axios').default;
 // Port Service
 const port = 8000;
 const idClient = 'bot-smw001';
-const bot_version = 'v 0.230.2.21 rev-1014'
+const bot_version = 'v 0.230.2.21 rev-1526'
 const currency = require("currency.js");
 
 const REAL = value => currency(value, { symbol: 'R$', decimal: ',', separator: '.' });
 const SALDO = value => currency(value, { symbol: '', decimal: ',', separator: '.' });
 
 // CREDENCIAIS DIALOGFLOW (https://console.cloud.google.com/)
-const sessionClient = new dialogflow.SessionsClient({ keyFilename: 'zdg-9un9-0aba54d6e44c.json' });
-const projectID = 'zdg-9un9';
+const sessionClient = new dialogflow.SessionsClient({ keyFilename: 'assets/doris-agenda-lxfgac-cd1481f4243c.json' });
+const projectID = 'doris-agenda-lxfgac';
 const languageProjectID = 'pt-br';
 
 bot_memory = {};
@@ -47,7 +47,7 @@ const url_main = 'https://opl-smw.sa.ngrok.io/_/api';
 const perfies = { 1: 'VENDEDOR', 2: 'GERENTE-VENDA', 3: 'GERENTE-COMPRA',4: 'GERENTE-GERAL', 9: 'DIRETOR' }
 const locais = { 1: 'MATRIZ', 30: 'Exclusive', 40: 'Pariguis', 70: 'JC', 75: 'BR' }
 const opcoes_perfil = { 1: { 
-        'menu': '*1*```-Consulta Produto```\n*2*```-Consulta Produto c/imagem```'
+        'menu': '*1*```-Consulta Produto p./cod.```\n*2*```-Consulta Produto c/imagem```'
         , 'options': {"1":1001,"2":1002}
         , 'available_options': [1,2] } 
     }
@@ -423,9 +423,9 @@ client.on('message', async msg => {
             search = Number(search).toString()
         }
 
-        const newPost = { "SearchProd": search, "User": user };
+        var newPost = { "SearchProd": search, "User": user };
         if (filial) {
-            newPost['Filial'] = filial;
+            newPost['Filial'] = Number(filial).toString();
         }
         if (almox) {
             newPost['Almox'] = almox;
@@ -475,33 +475,43 @@ client.on('message', async msg => {
                 preco = REAL(prods['data'][0]['preco_orig_win']).format();
                 saldo_geral = Number(prods['data'][0]['saldo_geral'])
                 saldo_filial_almox = prods['data'][0]['saldo_filial_almox'];
-                saldo_filial = prods['data'][0]['saldo_filial'];
+                saldo_filial = Number(prods['data'][0]['saldo_filial']);
+                fator = Number(prods['data'][0]['fator']);
                 unid = prods['data'][0]['unid']
+                codepto = prods['data'][0]['codepto']
+                data_captura = prods['data'][0]['data_captura']
 
 
                 rtnText = 'Achei ' + numMatchs;
-                rtnText = rtnText + ' p/Busca [' + searchStr + ']';
+                rtnText = rtnText + ' p/Busca [' + searchStr + '] em '+data_captura;
                 rtnText = rtnText + '\n```' + '-'.repeat(max_lengh) + '```';
                 rtnText = rtnText + '\nDescrição:\n' + descricao;
-                rtnText = rtnText + '\n\n```Código: ```' + codprod;
+                rtnText = rtnText + '\n\n```Código: ```' + codprod+'/'+codepto;
                 rtnText = rtnText + '\n```   EAN: ```' + ean;
-                rtnText = rtnText + '\n``` Preço: ```' + preco;
+                rtnText = rtnText + '\n``` Preço: ```' + preco+'/'+unid;
+                if (fator!=1 && unid=='M2') {
+                rtnText = rtnText + '\n```CX com: ```' + fator+'m2';
+                }
                 if (saldo_geral == 0) {
                     rtnText = rtnText + '\n*Produto sem SALDO*';
                 } else {
+                                       //123456789-123456789-123456
+                    rtnText = rtnText + '\n__ SALDO _______________'
+                    rtnText = rtnText + '\n*SALDO GERAL:* ' + SALDO(saldo_geral) + unid;
+                    com_saldo_filiais = prods['data'][0]['com_saldo_filiais'];
+                    tempStrBuffer = '';
+                    Object.keys(com_saldo_filiais).forEach(function (key) {
+                        // console.log('Key : ' + key + ', Value : ' + com_saldo_filiais[key])
+                        tempStrBuffer = tempStrBuffer + '  ' + key + '=' + com_saldo_filiais[key] + unid + '\n'
+                    })
+                    rtnText = rtnText + '\n' + tempStrBuffer;
 
-                    if (saldo_filial_almox > 0) {
-                        rtnText = rtnText + '\n*SALDO GERAL:* ' + SALDO(saldo_geral) + unid;
-                        com_saldo_filiais = prods['data'][0]['com_saldo_filiais'];
-                        tempStrBuffer = '';
-                        Object.keys(com_saldo_filiais).forEach(function (key) {
-                            // console.log('Key : ' + key + ', Value : ' + com_saldo_filiais[key])
-                            tempStrBuffer = tempStrBuffer + '  ' + key + '=' + com_saldo_filiais[key] + unid + '\n'
-                        })
-                        rtnText = rtnText + '\n' + tempStrBuffer;
-                    }
-                    if (saldo_filial_almox > 0) {
+                    if (saldo_filial > 0) {
+                        // rtnText = rtnText + '\n*SALDO LOJA:* ' + SALDO(saldo_filial_almox) + unid;
                         rtnText = rtnText + '\n*SALDO LOJA:* ' + SALDO(saldo_filial_almox) + unid;
+                        if (saldo_filial_almox>0) {
+                            rtnText = rtnText +  SALDO(saldo_filial_almox) + unid;
+                        }
                         saldo_almox = prods['data'][0]['saldo_almox'];
                         tempStrBuffer = ''
                         Object.keys(saldo_almox).forEach(function (key) {
@@ -515,8 +525,9 @@ client.on('message', async msg => {
                 }
                 client.sendMessage(from, rtnText + extra_msg);
             } else {
+                data_captura = prods['data'][0]['data_captura']
                 rtnText = 'Achei ' + numMatchs;
-                rtnText = rtnText + ' p/Busca [' + searchStr + ']';
+                rtnText = rtnText + ' p/Busca [' + searchStr + '] em '+data_captura;
                 rtnText = rtnText + '\n```' + '-'.repeat(max_lengh) + '```';
                 strRows = "\n\n"
                 for (var i = 0; i < prods['data'].length; i++) {
@@ -528,15 +539,15 @@ client.on('message', async msg => {
                     codauxiliar = prod['codauxiliar'];
                     saldo_filial_almox = prod['saldo_filial_almox'];
                     saldo_filial = prod['saldo_filial'];
-                    saldo_geral = Number(prod['saldo_geral'])
+                    saldo_geral = SALDO(Number(prod['saldo_geral']));
                     unid = prod['unid']
+                    promocao = prod['promocao']
                     preco = REAL(prod['preco_orig_win']).format();
 
                     // descr = zeroPad((i + 1), 3) + '. ' + prod['codprod'] + ' -' + prod['descricao'];
                     // descr = zeroPad((i + 1), 3) + '.CP ' + codprod + ' -' + descricao;
                     descr = codprod + ' -' + descricao;
-
-                    strRows = strRows + descr + ' ' + preco + ' SG: ' + saldo_geral + unid + '\n\n';
+                    strRows = strRows + descr + '\n  Preço:' + preco + '\n  Saldo Geral: ' + saldo_geral + unid + '\n\n';
                 }
 
 
@@ -695,7 +706,7 @@ client.on('message', async msg => {
                     bot_memory[user]['last_action'] = new Date().toString();
                 } else if ([1011, 1012].includes(bot_memory[user]['stage'])) {
                     search = msg_body;
-                    sendPostRequest(msg.from, "/search_produto", search, user, bot_memory[user]['stage'] == 1012);
+                    sendPostRequest(msg.from, "/search_produto", search, user, bot_memory[user]['stage'] == 1012,bot_memory[user]['local']);
                 }
             }
             else if (msg_body === 'media1') {
