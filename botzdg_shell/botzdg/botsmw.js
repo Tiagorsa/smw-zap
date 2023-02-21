@@ -10,7 +10,14 @@ const fileUpload = require('express-fileupload');
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
-const fs = require('fs');
+
+const { WebhookClient } = require('dialogflow-fulfillment');
+const dialogflow = require('@google-cloud/dialogflow');
+const util = require("util");
+const { struct } = require('pb-util');
+const fs = require("fs");
+
+
 const axios = require('axios').default;
 
 // const dateFormat = require('dateformat');
@@ -18,18 +25,218 @@ const axios = require('axios').default;
 // Port Service
 const port = 8000;
 const idClient = 'bot-smw001';
-const bot_version = 'v 0.230.2.18 rev-2234'
+const bot_version = 'v 0.230.2.21 rev-1014'
 const currency = require("currency.js");
 
 const REAL = value => currency(value, { symbol: 'R$', decimal: ',', separator: '.' });
+const SALDO = value => currency(value, { symbol: '', decimal: ',', separator: '.' });
 
-bot_memory = {}
+// CREDENCIAIS DIALOGFLOW (https://console.cloud.google.com/)
+const sessionClient = new dialogflow.SessionsClient({ keyFilename: 'zdg-9un9-0aba54d6e44c.json' });
+const projectID = 'zdg-9un9';
+const languageProjectID = 'pt-br';
+
+bot_memory = {};
 
 // Remote Acess SMW Anvil ERP API
 const username = "api";
 const password = "smw1329";
 const headers = { 'Content-Type': 'application/json' };
 const url_main = 'https://opl-smw.sa.ngrok.io/_/api';
+
+const perfies = { 1: 'VENDEDOR', 2: 'GERENTE-VENDA', 3: 'GERENTE-COMPRA',4: 'GERENTE-GERAL', 9: 'DIRETOR' }
+const locais = { 1: 'MATRIZ', 30: 'Exclusive', 40: 'Pariguis', 70: 'JC', 75: 'BR' }
+const opcoes_perfil = { 1: { 
+        'menu': '*1*```-Consulta Produto```\n*2*```-Consulta Produto c/imagem```'
+        , 'options': {"1":1001,"2":1002}
+        , 'available_options': [1,2] } 
+    }
+
+
+// FUNÇÕES DIALOGFLOW UTIL
+function isBlank(str) {
+    return (!str || /^\s*$/.test(str));
+}
+
+// FUNÇÕES DIALOGFLOW
+async function detectIntent(
+    projectId,
+    sessionId,
+    query,
+    contexts,
+    languageCode
+) {
+    const sessionPath = sessionClient.projectAgentSessionPath(
+        projectId,
+        sessionId
+    );
+
+    // The text query request.
+    const request = {
+        session: sessionPath,
+        queryInput: {
+            text: {
+                text: query,
+                languageCode: languageCode,
+            },
+        },
+    };
+
+    if (contexts && contexts.length > 0) {
+        request.queryParams = {
+            contexts: contexts,
+        };
+    }
+
+    const responses = await sessionClient.detectIntent(request);
+    return responses[0];
+}
+async function executeQueries(projectId, sessionId, queries, languageCode) {
+    let context;
+    let intentResponse;
+    for (const query of queries) {
+        try {
+            console.log(`Pergunta: ${query}`);
+            intentResponse = await detectIntent(
+                projectId,
+                sessionId,
+                query,
+                context,
+                languageCode
+            );
+            //console.log('Enviando Resposta');
+            if (isBlank(intentResponse.queryResult.fulfillmentText)) {
+                console.log('Sem resposta definida no DialogFlow');
+                return null;
+            }
+            else {
+                console.log('Resposta definida no DialogFlow');
+                //console.log(intentResponse.queryResult.fulfillmentText);
+                return `${intentResponse.queryResult.fulfillmentText}`
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+}
+async function detectIntentwithTTSResponse(projectId,
+    sessionId,
+    query,
+    languageCode) {
+    const sessionPath = sessionClient.projectAgentSessionPath(
+        projectId,
+        sessionId
+    );
+    // The audio query request
+    const request = {
+        session: sessionPath,
+        queryInput: {
+            text: {
+                text: query,
+                languageCode: languageCode,
+            },
+        },
+        outputAudioConfig: {
+            audioEncoding: 'OUTPUT_AUDIO_ENCODING_OGG_OPUS',
+        },
+    };
+    const responses = await sessionClient.detectIntent(request);
+    const audioFile = responses[0].outputAudio;
+    const outputFile = './' + sessionId + '.ogg';
+    util.promisify(fs.writeFile)(outputFile, audioFile, 'base64');
+    console.log(`Audio content written to file: ${outputFile}`);
+    return responses[0];
+}
+async function executeQueriesAudio(projectId, sessionId, queries, languageCode) {
+    let intentResponse;
+    for (const query of queries) {
+        try {
+            console.log(`Pergunta: ${query}`);
+            intentResponse = await detectIntentwithTTSResponse(
+                projectId,
+                sessionId,
+                query,
+                languageCode
+            );
+            if (isBlank(intentResponse.queryResult.fulfillmentText)) {
+                console.log('Sem resposta definida no DialogFlow');
+                return null;
+            }
+            else {
+                console.log('Resposta definida no DialogFlow');
+                //console.log(intentResponse.queryResult.fulfillmentText);
+                return `${intentResponse.queryResult.fulfillmentText}`
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+}
+async function detectAudioIntent(
+    projectId,
+    sessionId,
+    filename,
+    encoding,
+    sampleRateHertz,
+    languageCode
+) {
+    // Instantiates a session client
+    const sessionClientAudio = sessionClient;
+
+    // The path to identify the agent that owns the created intent.
+    const sessionPath = sessionClientAudio.projectAgentSessionPath(
+        projectId,
+        sessionId
+    );
+
+    // Read the content of the audio file and send it as part of the request.
+    const readFile = util.promisify(fs.readFile);
+    const inputAudio = await readFile(filename);
+    const request = {
+        session: sessionPath,
+        queryInput: {
+            audioConfig: {
+                audioEncoding: encoding,
+                sampleRateHertz: sampleRateHertz,
+                languageCode: languageCode,
+            },
+        },
+        inputAudio: inputAudio,
+    };
+    // Recognizes the speech in the audio and detects its intent.
+    const [response] = await sessionClientAudio.detectIntent(request);
+
+    console.log('Detected intent:');
+    const result = response.queryResult;
+    // Instantiates a context client
+    const contextClient = new dialogflow.ContextsClient();
+
+    console.log(`  Query: ${result.queryText}`);
+    console.log(`  Response: ${result.fulfillmentText}`);
+    if (result.intent) {
+        console.log(`  Intent: ${result.intent.displayName}`);
+    } else {
+        console.log('  No intent matched.');
+    }
+    const parameters = JSON.stringify(struct.decode(result.parameters));
+    console.log(`  Parameters: ${parameters}`);
+    if (result.outputContexts && result.outputContexts.length) {
+        console.log('  Output contexts:');
+        result.outputContexts.forEach(context => {
+            const contextId = contextClient.matchContextFromProjectAgentSessionContextName(
+                context.name
+            );
+            const contextParameters = JSON.stringify(
+                //struct.decode(context.parameters)
+            );
+            console.log(`    ${contextId}`);
+            console.log(`      lifespan: ${context.lifespanCount}`);
+            console.log(`      parameters: ${contextParameters}`);
+        });
+    }
+    return `${result.fulfillmentText}`
+}
+
 
 // EXPRESS Service
 app.use(express.json());
@@ -176,15 +383,15 @@ client.on('message', async msg => {
     const user_from = msg.from;
     const user = user_from.replace(/\D/g, ''); // Only numbers
     // 
-    const perfies = { 0: 'VENDEDOR', 1: 'GERENTE-VENDA', 2: 'GERENTE-COMPRA', 3: 'DIRETOR' }
-    const locais = { 1: 'MATRIZ', 30: 'Exclusive', 40: 'Pariguis', 70: 'JC', 75: 'BR' }
-    const opcoes_perfil = { 0: { 'menu': '*1*```-Consulta Produto```', 'avalibel_options': [1] } }
 
-    async function asyncResetOptions(opcoes_perfil, perfil) {
-        text = '```Opções do Perfil:```'
+    async function asyncResetOptions(opcoes_perfil, perfil, user) {
+        text = "Seu perfil é de *" + perfies[bot_memory[user]['perfil']] + '*';
+        text = text + "\nno local:" + locais[bot_memory[user]['local']];
+        text = text + '\n\n```Opções do Perfil:```'
         text = text + '\n' + opcoes_perfil[perfil]['menu']
         text = text + '\n*0*```-Mostrar opções```'
         text = text + '\n*.doris*```-Desativa interação```'
+        bot_memory[user]['last_action'] = new Date().toString()
         client.sendMessage(msg.from, text);
     }
 
@@ -199,7 +406,7 @@ client.on('message', async msg => {
         return zeroString + n;
     }
 
-    const sendPostRequest = async (from, url_sufix, search, user, filial = "", almox = "") => {
+    const sendPostRequest = async (from, url_sufix, search, user, showImage, filial = "", almox = "") => {
         // var url_sufix='/search_produto';
         var url_full = url_main + url_sufix;
         var options = {
@@ -212,6 +419,10 @@ client.on('message', async msg => {
                 'password': password
             }
         };
+        if (isNumeric(search)) {
+            search = Number(search).toString()
+        }
+
         const newPost = { "SearchProd": search, "User": user };
         if (filial) {
             newPost['Filial'] = filial;
@@ -222,7 +433,7 @@ client.on('message', async msg => {
         try {
             resp = await axios.post(url_full, newPost, options);
             rawdata = resp.data
-            GetProduto(from, search, rawdata)
+            ShowProdutos(from, search, rawdata, showImage)
             // showdata(resp.data)
         } catch (err) {
             // Handle Error Here
@@ -230,59 +441,133 @@ client.on('message', async msg => {
         }
     };
 
+    function isNumeric(str) {
+        if (typeof str != "string") return false // we only process strings!  
+        return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+            !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+    }
 
-    function GetProduto(from, searchStr, rawdata) {
+    async function ShowProdutos(from, searchStr, rawdata, showImage = false) {
         // let rawdata = fs.readFileSync('temp_codprods-138736.json');
         let prods = rawdata;
         // let prods = JSON.parse(rawdata);
         var max_lengh = 27
-        numMatchs = zeroPad(prods['counter'], 5);
+        // numMatchs = zeroPad(prods['counter'], 5);
+        numMatchs = prods['counter']
         if (numMatchs >= 1) {
             if (numMatchs == 1) {
+                extra_msg = ''
                 codprod = zeroPad(prods['data'][0]['codprod'], 6);
                 descricao = '```' + prods['data'][0]['descricao'] + '```';
+                if (showImage) {
+                    urlImage = prods['data'][0]['external_image'];
+                    if (urlImage) {
+                        const mediaUrl = await MessageMedia.fromUrl(urlImage);
+                        client.sendMessage(msg.from, mediaUrl, { caption: 'CODPROD: ' + codprod + '-' + descricao });
+                    } else {
+                        extra_msg = '\n*SEM IMAGEM DISPONÍVEL*'
+                    }
+                }
                 marca = prods['data'][0]['marca'];
                 ean = marca = prods['data'][0]['codauxiliar'];
                 cod_dep = prods['data'][0]['codepto'];
+
                 preco = REAL(prods['data'][0]['preco_orig_win']).format();
-                rtnText = 'Econtrei: ' + numMatchs;
-                rtnText = rtnText + 'Procurando:' + searchStr;
+                saldo_geral = Number(prods['data'][0]['saldo_geral'])
+                saldo_filial_almox = prods['data'][0]['saldo_filial_almox'];
+                saldo_filial = prods['data'][0]['saldo_filial'];
+                unid = prods['data'][0]['unid']
+
+
+                rtnText = 'Achei ' + numMatchs;
+                rtnText = rtnText + ' p/Busca [' + searchStr + ']';
                 rtnText = rtnText + '\n```' + '-'.repeat(max_lengh) + '```';
-                rtnText = rtnText + '\nCódigo: ' + codprod;
-                rtnText = rtnText + '\nEAN: ' + ean;
                 rtnText = rtnText + '\nDescrição:\n' + descricao;
-                rtnText = rtnText + '\nPreço:' + preco;
-                client.sendMessage(from, rtnText);
+                rtnText = rtnText + '\n\n```Código: ```' + codprod;
+                rtnText = rtnText + '\n```   EAN: ```' + ean;
+                rtnText = rtnText + '\n``` Preço: ```' + preco;
+                if (saldo_geral == 0) {
+                    rtnText = rtnText + '\n*Produto sem SALDO*';
+                } else {
+
+                    if (saldo_filial_almox > 0) {
+                        rtnText = rtnText + '\n*SALDO GERAL:* ' + SALDO(saldo_geral) + unid;
+                        com_saldo_filiais = prods['data'][0]['com_saldo_filiais'];
+                        tempStrBuffer = '';
+                        Object.keys(com_saldo_filiais).forEach(function (key) {
+                            // console.log('Key : ' + key + ', Value : ' + com_saldo_filiais[key])
+                            tempStrBuffer = tempStrBuffer + '  ' + key + '=' + com_saldo_filiais[key] + unid + '\n'
+                        })
+                        rtnText = rtnText + '\n' + tempStrBuffer;
+                    }
+                    if (saldo_filial_almox > 0) {
+                        rtnText = rtnText + '\n*SALDO LOJA:* ' + SALDO(saldo_filial_almox) + unid;
+                        saldo_almox = prods['data'][0]['saldo_almox'];
+                        tempStrBuffer = ''
+                        Object.keys(saldo_almox).forEach(function (key) {
+                            // console.log('Key : ' + key + ', Value : ' + com_saldo_filiais[key])
+                            tempStrBuffer = tempStrBuffer + '  ' + key + '=' + saldo_almox[key] + unid + '\n'
+                        })
+                        rtnText = rtnText + '\n' + tempStrBuffer;
+                        rtnText = rtnText + '*SALDO:* ' + SALDO(saldo_filial) + unid;
+                    }
+
+                }
+                client.sendMessage(from, rtnText + extra_msg);
             } else {
-                // rtnText = 'Econtrei: ' + numMatchs;
-                // rtnText = rtnText + '\nProcurando:' + searchStr;
-                // rtnText = rtnText + '\n```' + '-'.repeat(max_lengh) + '```';
-                // client.sendMessage(from, rtnText);
-                rows = []
+                rtnText = 'Achei ' + numMatchs;
+                rtnText = rtnText + ' p/Busca [' + searchStr + ']';
+                rtnText = rtnText + '\n```' + '-'.repeat(max_lengh) + '```';
+                strRows = "\n\n"
                 for (var i = 0; i < prods['data'].length; i++) {
                     var prod = prods['data'][i];
                     // console.log(prod);
-                    descr=zeroPad((i+1),3)+'. '+prod['codprod'] + '-' + prod['descricao'];
-                    preco=REAL(prods['data'][i]['preco_orig_win']).format();
-                    row = { 
-                          title: descr
-                        , description: preco };
-                    rows.push(row);
+                    codprod = zeroPad(prod['codprod'], 8);
+                    descricao = prod['descricao'];
+                    codepto = prod['codepto'];
+                    codauxiliar = prod['codauxiliar'];
+                    saldo_filial_almox = prod['saldo_filial_almox'];
+                    saldo_filial = prod['saldo_filial'];
+                    saldo_geral = Number(prod['saldo_geral'])
+                    unid = prod['unid']
+                    preco = REAL(prod['preco_orig_win']).format();
+
+                    // descr = zeroPad((i + 1), 3) + '. ' + prod['codprod'] + ' -' + prod['descricao'];
+                    // descr = zeroPad((i + 1), 3) + '.CP ' + codprod + ' -' + descricao;
+                    descr = codprod + ' -' + descricao;
+
+                    strRows = strRows + descr + ' ' + preco + ' SG: ' + saldo_geral + unid + '\n\n';
                 }
+
+
+                client.sendMessage(from, rtnText + strRows);
+
+                // rows = []
+                // for (var i = 0; i < prods['data'].length; i++) {
+                //     var prod = prods['data'][i];
+                //     // console.log(prod);
+                //     descr = zeroPad((i + 1), 3) + '. ' + prod['codprod'] + '-' + prod['descricao'];
+                //     preco = REAL(prods['data'][i]['preco_orig_win']).format();
+                //     row = {
+                //         title: descr
+                //         , description: preco
+                //     };
+                //     rows.push(row);
+                // }
                 // rows=[
                 //       { title: 'X-Burguer', description: 'R$5.00' }
                 //     , { title: 'X-Egg', description: 'R$6.00' }
                 //     , { title: 'X-Tudo', description: 'R$7.00' }]
-                console.log('send list: ' + numMatchs)
-                sections = [{
-                    title: '© SMWBOT'
-                    , rows: rows
-                }];
-                list = new List('Lista , escolha os itens do seu pedido selecionando as opções do menu'
-                    , 'Consulta Produtos'
-                    , sections, 'Escolha o seu produto'
-                    , '© SMW-BOT');
-                client.sendMessage(from, list);
+                console.log('send list: ' + prods['data'].length)
+                // sections = [{
+                //     title: '© SMWBOT'
+                //     , rows: rows
+                // }];
+                // list = new List('Lista , escolha os itens do seu pedido selecionando as opções do menu'
+                //     , 'Consulta Produtos'
+                //     , sections, 'Escolha o seu produto'
+                //     , '© SMW-BOT');
+                // client.sendMessage(from, list);
                 // console.log('send Button: ');
                 // rows=[{ body: 'Aceptar' }, { body: 'rechazar' }]
                 // button = new Buttons('Button body', rows, 'title', 'footer');
@@ -303,111 +588,129 @@ client.on('message', async msg => {
         // return rtnText;
     }
 
-    //559185483773 --From: 559185483773@c.us Usuário armazenado: 559185483773 - Andréa
-    // allowed_users = ["559198265091","559185483773"];
-    filename_allowed = 'allowed.txt';
-    console.log('Read Allowed users: ' + filename_allowed);
-    var allowed_users = fs.readFileSync(filename_allowed).toString().split("\n");
+    cliente = 'opl';
+    jsonfile_allowed = 'assets/allowed-m-' + cliente + '.json'
+    console.log('Read Allowed users: ' + jsonfile_allowed);
+    var rawdata = fs.readFileSync(jsonfile_allowed);
+    var userDB = JSON.parse(rawdata);
+
+    // Allow User
+    var allowed_users = []
+    Object.keys(userDB[cliente]["allowed"]).forEach(function (key) {
+        allowed_users.push(key);
+    })
     console.log('allowed_users: ' + allowed_users);
-    console.log('\nFrom: ' + user_from + ' Usuário armazenado: ' + user + ' - ' + nomeContato)
+
+    // Monstra quem esta chamando
+    console.log('Calling From: ' + user_from + ' Search User: ' + user + ' - ' + nomeContato)
+
+    // Somente Usuários autorizados
     if (allowed_users.includes(user)) {
         if (user in bot_memory == false) {
-            perfil = 0;
-            stage = 0;
-            local = 1;
-            depto = 1;
-            ponto = 'N'
             bot_memory[user] = {
                 'active': 1
-                , 'stage': stage
-                , 'perfil': perfil
-                , 'local': local
-                , 'depto': depto
-                , 'ponto': ponto
-                , 'screen_mobile': 27
+                , 'stage': 0
+                , 'nome': userDB[cliente]["allowed"][user]['username']
+                , 'perfil': userDB[cliente]["allowed"][user]['perfil']
+                , 'local': userDB[cliente]["allowed"][user]['codfil']
+                , 'depto': userDB[cliente]["allowed"][user]['coddepto']
+                , 'ponto': userDB[cliente]["allowed"][user]['ponto']
+                , 'screen_mobile': userDB[cliente]["allowed"][user]['size']
                 , 'last_action': new Date().toString()
                 , 'last_login': new Date().toString()
             };
         } else {
-            active = bot_memory[user]['active'];
-            stage = bot_memory[user]['stage'];
-            perfil = bot_memory[user]['perfil'];
-            local = bot_memory[user]['local'];
-            depto = bot_memory[user]['depto'];
-            ponto = bot_memory[user]['ponto'];
+            // Update if change
+            bot_memory[user]['nome'] = userDB[cliente]["allowed"][user]['username'];
+            bot_memory[user]['perfil'] = userDB[cliente]["allowed"][user]['perfil'];
+            bot_memory[user]['local'] = userDB[cliente]["allowed"][user]['codfil'];
+            bot_memory[user]['depto'] = userDB[cliente]["allowed"][user]['coddepto'];
+            bot_memory[user]['ponto'] = userDB[cliente]["allowed"][user]['ponto'];
         }
-        console.log('Usuário: ' + user + ' - stage: ' + stage)
-        console.log('Local: ' + locais[local] + ' perfil ' + perfies[perfil])
-        console.log('last_action: ' + bot_memory[user]['last_action'] + '\n last_login: ' + bot_memory[user]['last_login'])
+        console.log('    Usuário: ' + user + ' - stage: ' + bot_memory[user]['stage']);
+        console.log('      Local: ' + locais[bot_memory[user]['local']] + ' perfil: ' + perfies[bot_memory[user]['perfil']]);
+        console.log('last_action: ' + bot_memory[user]['last_action']);
+        console.log(' last_login: ' + bot_memory[user]['last_login']);
+        console.log('Curret Time: ' + new Date().toString());
+        diff_hrs = Math.round(Math.abs(new Date() - new Date(bot_memory[user]['last_login'])) / 36e5);
+        diff_min = Math.round(Math.abs(new Date() - new Date(bot_memory[user]['last_login'])) / 1000 / 60);
+        console.log('           : h:(' + diff_hrs + ') m:(' + diff_min + ') ');
 
-        msg_body = msg.body.toLowerCase();
-        console.log('body: [' + msg_body + ']')
-        // msg_body=msg_body.toLowerCase();
+        //INTERAÇÃO DE TEXTO
+        if (!msg.hasMedia || !msg.type === "ptt") {
+            msg_body = msg.body.toLowerCase();
+            console.log('body: [' + msg_body + ']');
+            // msg_body=msg_body.toLowerCase();
 
-        if (msg_body === '.doris' || msg_body === '. doris' || msg_body === 'doris') {
-            if (bot_memory[user]['stage'] == 0) {
-                //      123456789-123456789
-                text = "Ola! eu sou a Doris\n *IA de Atendimento*";
-                text = text + "\nSeu perfil é de *" + perfies[perfil] + "*\nno local:" + locais[local];
-                msg.reply(text);
-                // client.sendMessage(msg.from, text);
-                bot_memory[user]['stage'] = 1;
-                bot_memory[user]['last_action'] = new Date().toString()
-                asyncResetOptions(opcoes_perfil, perfil);
-            } else {
-                text = "Doris Destativada!!";
-                // msg.reply(text);
-                client.sendMessage(msg.from, text);
-                bot_memory[user]['stage'] = 0;
-                bot_memory[user]['last_action'] = new Date().toString()
-            }
-        }
-        else if (bot_memory[user]['stage'] >= 1) {
-            if (msg_body == '1') {
-                bot_memory[user]['stage'] = 1001;
-            } else if (msg_body == '0') {
-                asyncResetOptions(opcoes_perfil, perfil);
-                bot_memory[user]['stage'] = 1;
-            }
-            else if (msg_body == '..') {
-                text = '123456789-123456789-123456789-123456789-123456789-123456789-123456789-'
-                client.sendMessage(msg.from, text);
-                text = '```123456789-123456789-123456789-123456789-123456789-123456789-123456789-```'
-                client.sendMessage(msg.from, text);
-            } else {
-                if (bot_memory[user]['stage'] <= 100) {
-                    text = 'Opção não disponível!'
-                    client.sendMessage(msg.from, text);
-                    asyncResetOptions(opcoes_perfil, perfil);
+            if (msg_body === '.doris' || msg_body === '. doris' || msg_body === 'doris') {
+                if (bot_memory[user]['stage'] == 0) {
+                    //      123456789-123456789
+                    // Mensagem de Benvindo
+                    text = "Olá! " + bot_memory[user]['nome'] + ",eu sou a Doris\n *IA de Atendimento*";
+                    text = text + "\nver: " + bot_version;
+                    // text = text + "\n\nSeu perfil é de *" + perfies[bot_memory[user]['perfil']] + "*\nno local:" + locais[bot_memory[user]['local']];
+                    msg.reply(text);
+                    // client.sendMessage(msg.from, text);
                     bot_memory[user]['stage'] = 1;
+                    bot_memory[user]['last_action'] = new Date().toString();
+                    asyncResetOptions(opcoes_perfil, bot_memory[user]['perfil'], user);
+                } else {
+                    text = "Doris Destativada!!";
+                    // msg.reply(text);
+                    client.sendMessage(msg.from, text);
+                    bot_memory[user]['stage'] = 0;
+                    bot_memory[user]['last_action'] = new Date().toString();
                 }
             }
-            // Processamento por Estágio
-            if (bot_memory[user]['stage'] == 1001) {
-                text = '```Digite``` *0* ```para opções.```\n'
-                text = text + '_*Informe o código do produto:*_'
-                msg.reply(text);
-                bot_memory[user]['stage'] = 1002;
-            } else if (bot_memory[user]['stage'] == 1002) {
-                search = msg_body
-                // let rawdata = fs.readFileSync('temp_codprods-138736.json');
-                // textProds = GetProduto(msg.from,search,rawdata)
-                sendPostRequest(msg.from, "/search_produto", search, user)
-
+            else if (bot_memory[user]['stage'] >= 1) {
+                if (msg_body == '1') {
+                    bot_memory[user]['stage'] = 1001;
+                }
+                else if (msg_body == '2') {
+                    bot_memory[user]['stage'] = 1002;
+                }
+                else if (msg_body == '0') {
+                    asyncResetOptions(opcoes_perfil, bot_memory[user]['perfil'], user);
+                    bot_memory[user]['stage'] = 1;
+                }
+                else if (msg_body == '..') {
+                    text = '123456789-123456789-123456789-123456789-123456789-123456789-123456789-';
+                    client.sendMessage(msg.from, text);
+                    text = '```123456789-123456789-123456789-123456789-123456789-123456789-123456789-```';
+                    client.sendMessage(msg.from, text);
+                } else {
+                    if (bot_memory[user]['stage'] <= 100) {
+                        text = 'Opção não disponível!';
+                        client.sendMessage(msg.from, text);
+                        asyncResetOptions(opcoes_perfil, bot_memory[user]['perfil'], user);
+                        bot_memory[user]['stage'] = 1;
+                    }
+                }
+                // Processamento por Estágio
+                if ([1001, 1002].includes(bot_memory[user]['stage'])) {
+                    text = '```Digite``` *0* ```para opções.``` .' + bot_memory[user]['stage'] + '\n';
+                    text = text + '_*Informe o código do produto:*_';
+                    msg.reply(text);
+                    bot_memory[user]['stage'] = bot_memory[user]['stage'] + 10;
+                    bot_memory[user]['last_action'] = new Date().toString();
+                } else if ([1011, 1012].includes(bot_memory[user]['stage'])) {
+                    search = msg_body;
+                    sendPostRequest(msg.from, "/search_produto", search, user, bot_memory[user]['stage'] == 1012);
+                }
             }
-        }
-        else if (msg_body === 'media1') {
-            const media1 = MessageMedia.fromFilePath('./icon.png');
-            client.sendMessage(msg.from, media1, { caption: 'imagem' });
-        }
-        else if (msg_body === 'media4') {
-            const media4 = MessageMedia.fromFilePath('./video.mp4');
-            client.sendMessage(msg.from, media4, { caption: 'video' });
-        }
-        //chamada via url
-        else if (msg_body === 'mediaurl') {
-            const mediaUrl = await MessageMedia.fromUrl('https://static.wixstatic.com/media/f930ec_dadb21066af74a0aab01d8463ea643e8~mv2.png/v1/fill/w_92,h_128,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/Sologo.png');
-            client.sendMessage(msg.from, mediaUrl, { caption: 'imagem' });
+            else if (msg_body === 'media1') {
+                const media1 = MessageMedia.fromFilePath('./icon.png');
+                client.sendMessage(msg.from, media1, { caption: 'imagem' });
+            }
+            else if (msg_body === 'media4') {
+                const media4 = MessageMedia.fromFilePath('./video.mp4');
+                client.sendMessage(msg.from, media4, { caption: 'video' });
+            }
+            //chamada via url
+            else if (msg_body === 'mediaurl') {
+                const mediaUrl = await MessageMedia.fromUrl('https://static.wixstatic.com/media/f930ec_dadb21066af74a0aab01d8463ea643e8~mv2.png/v1/fill/w_92,h_128,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/Sologo.png');
+                client.sendMessage(msg.from, mediaUrl, { caption: 'imagem' });
+            }
         }
 
     }

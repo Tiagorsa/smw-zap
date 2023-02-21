@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "doris-agenda-lxfgac",
+  "private_key_id": "cd1481f4243c930b2ce6bb874c5987ff8275e4dd",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCnoMYs4GI+SKaq\n69crisqHd01thilRhtNpol+auN2iBJtxkOIAw5B5Z8FCnqXgsbErsDxeoibFZc2d\n5W2Awwp8ISPonIl4xHV97u98M6Pymw0Ydpm5g3v3KgTG6Wamb+RUEYKBp9SJaa+i\nZQp9/IIxINM8cnc8ubrg1T7PtIkWgWuYRNRQY0IQXaQhcMysaU2/h5HHk26YH9kX\naVtfVMUo4NwhtSxF6leinyXDQGpCJdyeDo76UhEujPZyUMD6W5mkbeMktfxPZFqI\nSWiY5Uq2GU7jKNPG0pC0hYihk4X0DVRMNDtdX2oWcGw+4xfMi+wIqiabxPuSUpya\n4N6MfCjBAgMBAAECggEAGhtpIg4kXuzzwEUQ8wAfwO9syLUPdFoaTSZz22YVZqlv\nCEX3XQUYWEA3kkehMBicrmA5VsfMYAwV9RSJdHdsB58lt5HBu2RlpCJ1fBOS4jMR\n3BCEqqb2xKzvp4csbJmapxk/CTB5YplqOFGiS7LrF/mzzINLXNLUbzXnHXRRsYZf\nw+Y7274YKtppN5Zr0JI3ADaI0xSBv4wG323lyuH1iiVvRRZQIL0r0WbEaFYooGof\n2s+okOflLmWgRWAmhMCxM/PgIq+aok6cMXE45yQRqoFCgnuo/S3RAHANfNkp2L0R\naHkpPl5Jtfd7KYAaiE3H6Awfqs2dE98JHN7YVrpZLQKBgQDkiEgMl6lSUrXkrDWX\nz0Ksh14fJ9/WtZl4UXYNCUSy25I2cAqBno8CLGy+JkxBGx+ga+HNElpm+mdzHUpb\nXAxX9zP6gchxImfrG7lTYiO5ccfk0G6EzAD+mB4WPDcM9xOn31kiNEZ/bFozDXJ8\nSNO/uBae33YY9tJnJUCWTtmX0wKBgQC7xoaUjqq9YT40vGUH/pU4zBNAEg/R3tGP\nT9NSh7qitvkvuc2mI0x41h3LB+jGZRSf8a3dNHo7w/b/FLUJkv4r3YE8hIlWdUNN\nFkyoLa11HJ3vgnVmTxhYJI3SiIIZ/AY8QAwWlsmb7eaKoYtkmjWFlOu4uGN0Vwb+\nW/gva+RUmwKBgHhzU/Y/IWFgcrpaAc1H0k548qTdMV9LS95coSnxzqGulPvYRdFX\nruxoWdBHAz31e8/jzJl3qOpJ5KiJsZ1BgMgEZQMN0IXAqqECdcV7HnUpgUAak4Wu\nuH930bPKfQF6YIPEdohOoTGb/FaYKdVT1TdhYZrPEMHLpc3zln0ihhE9AoGACIG4\n7Rf9gjDamZcDWLZe2kDcimWHE/HtOnnaT/3YJbD2XwQi3ejxePPyS5VjJUHFCm3v\ne3r6IqUBFpNAlFt1alVRmoVCl4kecGqXNHNFTW3rdcNKQEVLDAsz5ZrLkhPJ0Iby\nRT+1iHvhmtwwrXETBac2eprX3phmt7VA7B0OLgsCgYAes975xkGT9H9wJpuDBw6j\n1WZggwAPwCQyBw9y/er3a7wtu7SFkSoJzeBTSQlwKUfq1haMGnT0xnOVguozMxlc\nU8entWhUo6PBVPcm6WeviHlHcDdiSo/6KVnimzJgjsinbLIuEiUvL5DC6Yxa132f\nubyrZoFsqvFn/Sw7qF0GVw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "bot-smw-zap@doris-agenda-lxfgac.iam.gserviceaccount.com",
+  "client_id": "115524432216594089828",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/bot-smw-zap%40doris-agenda-lxfgac.iam.gserviceaccount.com"
+}
