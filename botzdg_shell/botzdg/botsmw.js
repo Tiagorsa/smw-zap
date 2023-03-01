@@ -25,7 +25,7 @@ const axios = require('axios').default;
 // Port Service
 const port = 8000;
 const idClient = 'bot-smw001';
-const bot_version = 'v 0.230.2.21 rev-1526'
+const bot_version = ' 0.230.2.25 rev-1705'
 const currency = require("currency.js");
 
 const REAL = value => currency(value, { symbol: 'R$', decimal: ',', separator: '.' });
@@ -44,13 +44,49 @@ const password = "smw1329";
 const headers = { 'Content-Type': 'application/json' };
 const url_main = 'https://opl-smw.sa.ngrok.io/_/api';
 
-const perfies = { 1: 'VENDEDOR', 2: 'GERENTE-VENDA', 3: 'GERENTE-COMPRA',4: 'GERENTE-GERAL', 9: 'DIRETOR' }
+const perfies = { 1: 'VENDEDOR', 2: 'GERENTE-VENDA', 3: 'GERENTE-COMPRA', 4: 'GERENTE-GERAL', 9: 'DIRETOR' }
 const locais = { 1: 'MATRIZ', 30: 'Exclusive', 40: 'Pariguis', 70: 'JC', 75: 'BR' }
-const opcoes_perfil = { 1: { 
-        'menu': '*1*```-Consulta Produto p./cod.```\n*2*```-Consulta Produto c/imagem```'
-        , 'options': {"1":1001,"2":1002}
-        , 'available_options': [1,2] } 
+const opcoes_perfil = {
+    "1": {
+        'menu':
+            "*1 ou p*-Consulta Produto p/cod." +
+            "\n*2 ou i*-Consulta Produto c/imagem"
+        , 'options': [
+            { "stage": 1001, "menu_options": ["1", "p"], "menu": "'*1 ou p*```-Consulta Produto p./cod.```" }   // Consulta Produto p./cod.
+            , { "stage": 1002, "menu_options": ["2", "i"], "menu": "'*2 ou i*```-Consulta Produto c/imagem```" }  // Consulta Produto c/imagem
+        ]
+    },
+    "2": {
+        'menu':
+            "*1 ou p*-Consulta Produto p/cod." +
+            "\n*2 ou i*-Consulta Produto c/imagem" +
+            "\n*3 ou c*-Consulta Cotação"
+        , 'options': [
+            { "stage": 1001, "menu_options": ["1", "p"], "menu": "'*1 ou p*```-Consulta Produto p./cod." }   // Consulta Produto p./cod.
+            , { "stage": 1002, "menu_options": ["2", "i"], "menu": "'*2 ou i*```-Consulta Produto c/imagem" }  // Consulta Produto c/imagem
+            , { "stage": 2001, "menu_options": ["3", "c"], "menu": "'*3 ou c*```-Consulta Cotação" }          // Consulta Produto c/imagem
+        ]
+    }, 
+    "4": {
+        'menu':
+            "*1 ou p*-Consulta Produto p/cod." +
+            "\n*2 ou i*-Consulta Produto c/imagem" +
+            "\n*3 ou c*-Consulta Cotação"+
+            "\n*6 ou t*-Total do dia"+
+            "\n*7 ou a*-Total do dia (anterior)"
+        , 'options': [
+              { "stage": 1001, "menu_options": ["1", "p"], "menu": "'*1 ou p*```-Consulta Produto p./cod." }   // Consulta Produto p./cod.
+            , { "stage": 1002, "menu_options": ["2", "i"], "menu": "'*2 ou i*```-Consulta Produto c/imagem" }  // Consulta Produto c/imagem
+            , { "stage":   10, "menu_options": ["3", "v"], "menu": "'*6 ou t*```-Totais do venda", "submenu":['totais-venda']}          // 
+        ]
+        , 'totais-venda': [
+            { "stage": 6001, "menu_options": ["3", "c"], "menu": "'*6 ou t*```-Total do dia", "submenu":[]}          // 
+          , { "stage": 6002, "menu_options": ["6", "t"], "menu": "'*7 ou a*```-Total do dia anterior" }          // 
+      ]
+
     }
+
+};
 
 
 // FUNÇÕES DIALOGFLOW UTIL
@@ -384,14 +420,18 @@ client.on('message', async msg => {
     const user = user_from.replace(/\D/g, ''); // Only numbers
     // 
 
-    async function asyncResetOptions(opcoes_perfil, perfil, user) {
+    async function asyncResetOptions(opcoes_perfil, perfil, user, NOTuserKeyWorkDORIS = true) {
+        sMenu = opcoes_perfil[perfil]['menu'];
         text = "Seu perfil é de *" + perfies[bot_memory[user]['perfil']] + '*';
         text = text + "\nno local:" + locais[bot_memory[user]['local']];
-        text = text + '\n\n```Opções do Perfil:```'
-        text = text + '\n' + opcoes_perfil[perfil]['menu']
-        text = text + '\n*0*```-Mostrar opções```'
-        text = text + '\n*.doris*```-Desativa interação```'
-        bot_memory[user]['last_action'] = new Date().toString()
+        text = text + "\n     ver:" + bot_version;
+        text = text + '\n\n```Opções do Perfil:```';
+        text = text + '\n' + sMenu;
+        text = text + '\n*0 ou m*-Mostrar menu de opções';
+        if (!NOTuserKeyWorkDORIS) {
+            text = text + '\n*.doris*```-Desativa interação';
+        }
+        bot_memory[user]['last_action'] = new Date().toString();
         client.sendMessage(msg.from, text);
     }
 
@@ -406,12 +446,21 @@ client.on('message', async msg => {
         return zeroString + n;
     }
 
-    const sendPostRequest = async (from, url_sufix, search, user, showImage, filial = "", almox = "") => {
+    const sendPostProduto = async (from, url_sufix, search, user, showImage, filial = "", almox = "") => {
         // var url_sufix='/search_produto';
-        var url_full = url_main + url_sufix;
+        // const url_main = 'https://opl-smw.sa.ngrok.io/_/api';
+        //  https://18.228.115.60
+        // time curl -s https://opl-smw.sa.ngrok.io/_/api/version
+        // time host opl-smw.sa.ngrok.io 8.8.8.8
+
+        var alt_url_api='https://18.228.115.60/_/api';
+        var api_host= url_main;
+
+
+        var url_full = api_host + url_sufix;
         var options = {
             method: 'post',
-            baseURL: url_main,
+            baseURL: api_host,
             url: url_sufix,
             headers: headers,
             auth: {
@@ -437,14 +486,76 @@ client.on('message', async msg => {
             // showdata(resp.data)
         } catch (err) {
             // Handle Error Here
+            console.error('POST: ' + from);
+            console.error(err);
+            console.error(err.code);
+            ShowPostERROR(from);
+        }
+    };
+
+
+    const sendPostCotacao = async (from, url_sufix, numFilial, numCotacao, user, pdfFormat = true) => {
+        // var url_sufix='/search_cotacao';
+        //  https://opl-smw.sa.ngrok.io/_/api/search_cotacao/1/805038448
+        // const url_main = 'https://opl-smw.sa.ngrok.io/_/api';
+        var alt_ip='https://18.228.115.60/_/api';
+        var api_host= url_main;
+        var url_full = api_host + url_sufix + '/' + numFilial + '/' + numCotacao;
+        console.log('url_full=' + url_full);
+        var options = {
+            method: 'post',
+            baseURL: api_host,
+            url: url_sufix,
+            headers: headers,
+            auth: {
+                'username': username,
+                'password': password
+            }
+        };
+        try {
+            resp = await axios.post(url_full, url_full, options);
+            rawdata = resp.data;
+            urlPdf = rawdata["external_url"];
+
+            ShowCotacao(from, urlPdf, rawdata)
+            // showdata(resp.data)
+        } catch (err) {
+            // Handle Error Here
             console.error(err);
         }
     };
+
 
     function isNumeric(str) {
         if (typeof str != "string") return false // we only process strings!  
         return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
             !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+    }
+
+    async function ShowCotacao(from, urlPdf, rawdata, pdfFormat = true) {
+        filial = rawdata['filial'];
+        numdoc = rawdata['numdoc'];
+        external_url = rawdata['external_url'];
+        // ---------------------------------------
+        urlPdfMain = "https://opl-smw.sa.ngrok.io" + urlPdf;
+        if (external_url) {
+            rtnText = 'filial:' + filial + ' numdoc:' + numdoc + '\nClick link:' + urlPdfMain;
+            client.sendMessage(from, rtnText);
+            if (pdfFormat) {
+                if (external_url) {
+                    const mediaUrl = await MessageMedia.fromUrl(urlPdfMain);
+                    client.sendMessage(msg.from, mediaUrl, { caption: 'Nº Cotação: ' });
+                } else {
+                    extra_msg = '\n*ARQUIVO INDISPONÍVEL*'
+                }
+            }
+        } else {
+            rtnText = 'filial:' + filial + ' numdoc:' + numdoc + '\n*DOCUMENTO NÂO ENCONTRADO*';
+            client.sendMessage(from, rtnText);
+        }
+        text = '```Digite``` *0 ou m* ```para opções\nInforme o Nº Cotação:.```\n';
+        client.sendMessage(from, text);
+
     }
 
     async function ShowProdutos(from, searchStr, rawdata, showImage = false) {
@@ -472,7 +583,15 @@ client.on('message', async msg => {
                 ean = marca = prods['data'][0]['codauxiliar'];
                 cod_dep = prods['data'][0]['codepto'];
 
+                promocao = 0;
                 preco = REAL(prods['data'][0]['preco_orig_win']).format();
+                if (e_promocao>0) {
+                    promocao = REAL(prods['data'][0]['promocao']).format();
+                    display_preco = promocao+'*';
+                } else {
+                    display_preco = preco;
+                }
+
                 saldo_geral = Number(prods['data'][0]['saldo_geral'])
                 saldo_filial_almox = prods['data'][0]['saldo_filial_almox'];
                 saldo_filial = Number(prods['data'][0]['saldo_filial']);
@@ -483,19 +602,19 @@ client.on('message', async msg => {
 
 
                 rtnText = 'Achei ' + numMatchs;
-                rtnText = rtnText + ' p/Busca [' + searchStr + '] em '+data_captura;
+                rtnText = rtnText + ' p/Busca [' + searchStr + '] em ' + data_captura;
                 rtnText = rtnText + '\n```' + '-'.repeat(max_lengh) + '```';
                 rtnText = rtnText + '\nDescrição:\n' + descricao;
-                rtnText = rtnText + '\n\n```Código: ```' + codprod+'/'+codepto;
+                rtnText = rtnText + '\n\n```Código: ```' + codprod + '/' + codepto;
                 rtnText = rtnText + '\n```   EAN: ```' + ean;
-                rtnText = rtnText + '\n``` Preço: ```' + preco+'/'+unid;
-                if (fator!=1 && unid=='M2') {
-                rtnText = rtnText + '\n```CX com: ```' + fator+'m2';
+                rtnText = rtnText + '\n``` Preço: ```' + display_preco + '/' + unid;
+                if (fator != 1 && unid == 'M2') {
+                    rtnText = rtnText + '\n```CX com: ```' + fator + 'm2';
                 }
                 if (saldo_geral == 0) {
                     rtnText = rtnText + '\n*Produto sem SALDO*';
                 } else {
-                                       //123456789-123456789-123456
+                    //123456789-123456789-123456
                     rtnText = rtnText + '\n__ SALDO _______________'
                     rtnText = rtnText + '\n*SALDO GERAL:* ' + SALDO(saldo_geral) + unid;
                     com_saldo_filiais = prods['data'][0]['com_saldo_filiais'];
@@ -509,9 +628,9 @@ client.on('message', async msg => {
                     if (saldo_filial > 0) {
                         // rtnText = rtnText + '\n*SALDO LOJA:* ' + SALDO(saldo_filial_almox) + unid;
                         rtnText = rtnText + '\n*SALDO LOJA:* ' + SALDO(saldo_filial_almox) + unid;
-                        if (saldo_filial_almox>0) {
-                            rtnText = rtnText +  SALDO(saldo_filial_almox) + unid;
-                        }
+                        // if (saldo_filial_almox > 0) {
+                        //     rtnText = rtnText + SALDO(saldo_filial_almox) + unid;
+                        // }
                         saldo_almox = prods['data'][0]['saldo_almox'];
                         tempStrBuffer = ''
                         Object.keys(saldo_almox).forEach(function (key) {
@@ -527,7 +646,7 @@ client.on('message', async msg => {
             } else {
                 data_captura = prods['data'][0]['data_captura']
                 rtnText = 'Achei ' + numMatchs;
-                rtnText = rtnText + ' p/Busca [' + searchStr + '] em '+data_captura;
+                rtnText = rtnText + ' p/Busca [' + searchStr + '] em ' + data_captura;
                 rtnText = rtnText + '\n```' + '-'.repeat(max_lengh) + '```';
                 strRows = "\n\n"
                 for (var i = 0; i < prods['data'].length; i++) {
@@ -593,14 +712,24 @@ client.on('message', async msg => {
         }
 
 
-        text = '```Digite``` *0* ```para opções ou outro *código* para para continuar.```\n';
+        text = '```Digite``` *0 ou m* ```para opções ou outro *código ou descrição* para para continuar.```\n';
         client.sendMessage(from, text);
 
         // return rtnText;
     }
 
+    async function ShowPostERROR(from) {
+        // let prods = JSON.parse(rawdata);
+        var max_lengh = 27
+        text = 'Não foi possivel processar informação tente novamente..\n';
+        client.sendMessage(from, text);
+
+        // return rtnText;
+    }
+
+
     cliente = 'opl';
-    jsonfile_allowed = 'assets/allowed-m-' + cliente + '.json'
+    jsonfile_allowed = 'assets/allowed-' + cliente + '.json'
     console.log('Read Allowed users: ' + jsonfile_allowed);
     var rawdata = fs.readFileSync(jsonfile_allowed);
     var userDB = JSON.parse(rawdata);
@@ -650,22 +779,30 @@ client.on('message', async msg => {
         //INTERAÇÃO DE TEXTO
         if (!msg.hasMedia || !msg.type === "ptt") {
             msg_body = msg.body.toLowerCase();
-            console.log('body: [' + msg_body + ']');
+            console.log('body: [' + msg_body + '] statge:' + bot_memory[user]['stage']);
             // msg_body=msg_body.toLowerCase();
+            NOTuserKeyWorkDORIS = true;
+            intro = false;
 
-            if (msg_body === '.doris' || msg_body === '. doris' || msg_body === 'doris') {
+            if (msg_body === '.doris' || msg_body === '. doris' || msg_body === 'doris' || NOTuserKeyWorkDORIS) {
                 if (bot_memory[user]['stage'] == 0) {
                     //      123456789-123456789
                     // Mensagem de Benvindo
-                    text = "Olá! " + bot_memory[user]['nome'] + ",eu sou a Doris\n *IA de Atendimento*";
-                    text = text + "\nver: " + bot_version;
+                    text = "Olá! " + bot_memory[user]['nome'] + ",eu sou a Doris";
+                    // 123456789-123456798-1234567
+                    text = text + "\n*WhatOP Doris*";
+                    text = text + "\nIA de Atendimento operacional";
+                    text = text + "\nAMBIENTE:";
+                    text = text + "\n*(TREINAMENTO/DEMONSTRAÇÃO)*";
+                    // text = text + "\nver: " + bot_version;
                     // text = text + "\n\nSeu perfil é de *" + perfies[bot_memory[user]['perfil']] + "*\nno local:" + locais[bot_memory[user]['local']];
                     msg.reply(text);
                     // client.sendMessage(msg.from, text);
-                    bot_memory[user]['stage'] = 1;
+                    bot_memory[user]['stage'] = 10;
                     bot_memory[user]['last_action'] = new Date().toString();
+                    intro = true;
                     asyncResetOptions(opcoes_perfil, bot_memory[user]['perfil'], user);
-                } else {
+                } else if (!NOTuserKeyWorkDORIS) {
                     text = "Doris Destativada!!";
                     // msg.reply(text);
                     client.sendMessage(msg.from, text);
@@ -673,57 +810,102 @@ client.on('message', async msg => {
                     bot_memory[user]['last_action'] = new Date().toString();
                 }
             }
-            else if (bot_memory[user]['stage'] >= 1) {
-                if (msg_body == '1') {
-                    bot_memory[user]['stage'] = 1001;
+            // Opções de Menu
+            if (bot_memory[user]['stage'] >= 1) {
+                isOptionMenuPerfil = false;
+                for (idx in opcoes_perfil[bot_memory[user]['perfil']]["options"]) {
+                    opcoes = opcoes_perfil[bot_memory[user]['perfil']]["options"][idx];
+                    menu_options = opcoes["menu_options"];
+                    if (menu_options.includes(msg_body)) {
+                        console.log("ACHEI NO PERFIL: op: [" + opcoes["menu_options"] + '] St:' + opcoes["stage"]);
+                        isOptionMenuPerfil = true;
+                        stage = opcoes["stage"];
+                        break;
+                    }
                 }
-                else if (msg_body == '2') {
-                    bot_memory[user]['stage'] = 1002;
+                //&& bot_memory[user]['stage']<100
+                if (bot_memory[user]['stage'] < 1000) {
+                    if (!isOptionMenuPerfil) { //  DEBUG apenas para log na console
+                        // msg.reply(msg_body);
+                        console.log("opções NÃO ECONTRADA");
+                    }
+                    if (isOptionMenuPerfil) {
+                        bot_memory[user]['stage'] = stage;
+                    } else if (msg_body == '..') {
+                        text = '123456789-123456789-123456789-123456789-123456789-123456789-123456789-';
+                        client.sendMessage(msg.from, text);
+                        text = '```123456789-123456789-123456789-123456789-123456789-123456789-123456789-```';
+                        client.sendMessage(msg.from, text);
+                    } else if (msg_body === 'media1') {
+                        const media1 = MessageMedia.fromFilePath('./icon.png');
+                        client.sendMessage(msg.from, media1, { caption: 'imagem' });
+                    } else if (msg_body === 'media4') {
+                        const media4 = MessageMedia.fromFilePath('./video.mp4');
+                        client.sendMessage(msg.from, media4, { caption: 'video' });
+                    } else if (msg_body === 'mediaurl') { //chamada via url
+                        const mediaUrl = await MessageMedia.fromUrl('https://static.wixstatic.com/media/f930ec_dadb21066af74a0aab01d8463ea643e8~mv2.png/v1/fill/w_92,h_128,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/Sologo.png');
+                        client.sendMessage(msg.from, mediaUrl, { caption: 'imagem' });
+                    } else {
+                        if (!['0', 'm'].includes(msg_body)) {
+                            if (bot_memory[user]['stage'] <= 1 && !intro) {
+                                text = 'Opção não disponível!';
+                                client.sendMessage(msg.from, text);
+                                asyncResetOptions(opcoes_perfil, bot_memory[user]['perfil'], user);
+                                bot_memory[user]['stage'] = 1;
+                            }
+                        }
+                    }
                 }
-                else if (msg_body == '0') {
+
+                if (['0', 'm'].includes(msg_body)) {
                     asyncResetOptions(opcoes_perfil, bot_memory[user]['perfil'], user);
                     bot_memory[user]['stage'] = 1;
                 }
-                else if (msg_body == '..') {
-                    text = '123456789-123456789-123456789-123456789-123456789-123456789-123456789-';
-                    client.sendMessage(msg.from, text);
-                    text = '```123456789-123456789-123456789-123456789-123456789-123456789-123456789-```';
-                    client.sendMessage(msg.from, text);
-                } else {
-                    if (bot_memory[user]['stage'] <= 100) {
-                        text = 'Opção não disponível!';
-                        client.sendMessage(msg.from, text);
-                        asyncResetOptions(opcoes_perfil, bot_memory[user]['perfil'], user);
-                        bot_memory[user]['stage'] = 1;
-                    }
-                }
+
                 // Processamento por Estágio
-                if ([1001, 1002].includes(bot_memory[user]['stage'])) {
-                    text = '```Digite``` *0* ```para opções.``` .' + bot_memory[user]['stage'] + '\n';
+                if ([1001, 1002].includes(bot_memory[user]['stage'])) { // CAPTURA CODIGO para Consulta produto
+                    text = '```Digite``` *0 ou m* ```para opções.``` .';// + bot_memory[user]['stage'] + '\n';
                     text = text + '_*Informe o código do produto:*_';
                     msg.reply(text);
                     bot_memory[user]['stage'] = bot_memory[user]['stage'] + 10;
                     bot_memory[user]['last_action'] = new Date().toString();
-                } else if ([1011, 1012].includes(bot_memory[user]['stage'])) {
+                } else if ([1011, 1012].includes(bot_memory[user]['stage'])) { // ENVIA para Consulta produto
                     search = msg_body;
-                    sendPostRequest(msg.from, "/search_produto", search, user, bot_memory[user]['stage'] == 1012,bot_memory[user]['local']);
+                    local = bot_memory[user]['local'];
+                    text_reply = 'Buscando Produto: [' + search + '] fil: ' + local + '.\nAguarde..';
+                    msg.reply(text_reply);
+                    sendPostProduto(msg.from, "/search_produto", search, user, bot_memory[user]['stage'] == 1012, local);
+                } else if ([2001].includes(bot_memory[user]['stage'])) {  // CAPTURA CODIGO para Consulta Cotação
+                    text = '```Digite``` *0 ou m* ```para opções.``` .';// + bot_memory[user]['stage'] + '\n';
+                    text = text + '_*Informe o Nº Cotação:*_';
+                    msg.reply(text);
+                    bot_memory[user]['stage'] = bot_memory[user]['stage'] + 10;
+                    bot_memory[user]['last_action'] = new Date().toString();
+                } else if ([2011].includes(bot_memory[user]['stage'])) { // ENVIA para Consulta COTAÇÂO
+
+
+                    pdf = (bot_memory[user]['stage'] == 2011);
+                    search = msg_body;
+                    pFilial = bot_memory[user]['local'];
+                    if (search.includes("-")) {
+                        pFilial = search.split('-')[0];
+                        pCotacao = search.split('-')[1];
+                    } else {
+                        pCotacao = search;
+                    }
+                    text_reply = 'Buscando Cotação: [' + search + '] fil: ' + pFilial + '.\nAguarde..';
+                    msg.reply(text_reply);
+
+                    sendPostCotacao(msg.from, "/search_cotacao", pFilial, pCotacao, user);
                 }
-            }
-            else if (msg_body === 'media1') {
-                const media1 = MessageMedia.fromFilePath('./icon.png');
-                client.sendMessage(msg.from, media1, { caption: 'imagem' });
-            }
-            else if (msg_body === 'media4') {
-                const media4 = MessageMedia.fromFilePath('./video.mp4');
-                client.sendMessage(msg.from, media4, { caption: 'video' });
-            }
-            //chamada via url
-            else if (msg_body === 'mediaurl') {
-                const mediaUrl = await MessageMedia.fromUrl('https://static.wixstatic.com/media/f930ec_dadb21066af74a0aab01d8463ea643e8~mv2.png/v1/fill/w_92,h_128,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/Sologo.png');
-                client.sendMessage(msg.from, mediaUrl, { caption: 'imagem' });
+
             }
         }
 
+    } else {
+        text = "ATENDIMENTO AUTOMÁTICO\nDoris *(TREINAMENTO)*\n *Destativada para usuário* [" + user + "]!!";
+        // msg.reply(text);
+        // client.sendMessage(msg.from, text);
     }
 
 });

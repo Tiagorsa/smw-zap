@@ -21,6 +21,8 @@ const idClient = 'bot-zdg';
 
 // URL ref. aulas:
 // https://zdgv2.club.hotmart.com/lesson/RO9dG1037P/intro-22.0-consumindo-o-dialogflow
+// https://zdgv2.club.hotmart.com/lesson/97BjQAma7p/55.0-integracao-dialogflow-(ouvindo-e-respondendo-com-audios)-legado
+//
 // DialogFlow Libs
 // $npm install @google-cloud/dialogflow
 // $npm install actions-on-google
