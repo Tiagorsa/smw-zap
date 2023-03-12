@@ -25,7 +25,7 @@ const axios = require('axios').default;
 // Port Service
 const port = 8000;
 const idClient = 'bot-smw001';
-const bot_version = ' 0.230.2.25 rev-1705'
+const bot_version = ' 0.230.2.28 rev-2312'
 const currency = require("currency.js");
 
 const REAL = value => currency(value, { symbol: 'R$', decimal: ',', separator: '.' });
@@ -498,10 +498,12 @@ client.on('message', async msg => {
         // var url_sufix='/search_cotacao';
         //  https://opl-smw.sa.ngrok.io/_/api/search_cotacao/1/805038448
         // const url_main = 'https://opl-smw.sa.ngrok.io/_/api';
-        var alt_ip='https://18.228.115.60/_/api';
+        // var alt_ip='https://18.228.115.60/_/api';
+        // var alt_ip='https://opl-smw.sa.ngrok.io/_/api';
+        const DEBUG=false;
         var api_host= url_main;
         var url_full = api_host + url_sufix + '/' + numFilial + '/' + numCotacao;
-        console.log('url_full=' + url_full);
+        
         var options = {
             method: 'post',
             baseURL: api_host,
@@ -513,9 +515,18 @@ client.on('message', async msg => {
             }
         };
         try {
-            resp = await axios.post(url_full, url_full, options);
+            if (DEBUG) {
+                console.log('--sendPostCotacao----');
+                console.log('--url_full----');
+                console.log(url_full);
+            }
+            resp = await axios.post(url_full, {"User":from}, options);
             rawdata = resp.data;
             urlPdf = rawdata["external_url"];
+            if (DEBUG) {
+                console.log('--rawdata-------');
+                console.log(rawdata);
+            }
 
             ShowCotacao(from, urlPdf, rawdata)
             // showdata(resp.data)
@@ -533,6 +544,13 @@ client.on('message', async msg => {
     }
 
     async function ShowCotacao(from, urlPdf, rawdata, pdfFormat = true) {
+        const DEBUG=false;
+        if (DEBUG) {
+            console.log('--ShowCotacao--');
+            console.log("from="+from);
+            console.log("urlPdf="+urlPdf);
+            console.log("rawdata="+rawdata);
+        }
         filial = rawdata['filial'];
         numdoc = rawdata['numdoc'];
         external_url = rawdata['external_url'];
@@ -582,7 +600,7 @@ client.on('message', async msg => {
                 marca = prods['data'][0]['marca'];
                 ean = marca = prods['data'][0]['codauxiliar'];
                 cod_dep = prods['data'][0]['codepto'];
-
+                e_promocao = prods['data'][0]['promocao'];
                 promocao = 0;
                 preco = REAL(prods['data'][0]['preco_orig_win']).format();
                 if (e_promocao>0) {
